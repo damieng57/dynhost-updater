@@ -31,7 +31,7 @@ from os import path, rename, remove, popen
 from argparse import ArgumentParser
 from ipaddress import ip_address
 from requests import request
-from sys import exit, stdout
+from sys import exit, stdout, platform
 from time import sleep
 import logging
 import json
@@ -431,4 +431,8 @@ if __name__ == "__main__":
                 logging.error("Could not save configuration file: {}".format(e))
 
         logging.debug("Waiting {} seconds".format(update_delay))
-        sleep(update_delay)
+
+        if platform == "win32" or platform == "cygwin":
+            exit(0)
+        else:
+            sleep(update_delay)

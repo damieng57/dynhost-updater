@@ -1,3 +1,4 @@
+
 # DynHost Updater
 ## What is it?
 This program is a dynamic DNS client for OVH's DynHost ([https://docs.ovh.com/ie/en/domains/hosting_dynhost/](https://docs.ovh.com/ie/en/domains/hosting_dynhost/)).
@@ -12,7 +13,8 @@ It requires Python 3.6+ and the packages inside `requirements.txt` to work.
 
 The scripts in the `scripts` folder in this repository require `curl` to be installed.
 
-```bash
+### Linux
+```sh
 # Dependencies for Debian / Raspbian / Ubuntu
 sudo apt update
 sudo apt install python3 python3-pip git
@@ -34,6 +36,48 @@ sudo ./uninstall.sh
 To manage the service you can use `sudo systemctl start/stop/status dynhost.service`.
 By default log files will be in `/var/log/dynhost/`.
 
+### Windows
+
+If your windows is older than Windows 10, you will need to install some tools. The easiest way is to install with Chololatey or pip for Python module.
+
+- Install requests module: pip3 install requests (can be different, depends on your python/pip installation)
+
+```sh
+pip install requests
+```
+
+- Install chocolatey as individual: https://chocolatey.org/install : 
+```sh
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+```
+
+- Install curl: 
+```shellscript
+choco install curl
+```
+
+- Update ipify.bat, this line is enough: 
+```shellscript
+@curl -s https://api.ipify.org/
+```
+
+- Change the last line of dyndns.py : sleep(update_delay) => exit(0) - If you don't change this, the script will be stuck at the end of the first execution. In addition, you can put "update_delay": 0 in the config file dynhost.json
+
+- Setup a scheduled task. In action, add the path to python. ex:
+    - program/script: C:\python\python.exe
+    - arguments: C:\ovh-dyndns\dynhost.py -c C:\ovh-dyndns\dynhost.json --scripts C:\ovh-dyndns\scripts
+    - start at: C:\ovh-dyndns
+Choose a recurrence and set the rest as you wish.
+
+#### Optionnal
+
+If you want use the script sfr.bat, you need to install sed on Windows. Just type:
+
+
+```shellscript
+choco install sed
+```
+
 ## Configuration
 
 You can take a look at the `examples` and the `scripts` folders to see basic configurations. You can use them as templates.
@@ -43,7 +87,7 @@ If you need to disable this syntax check, for instance if it malfunctions, use t
 
 ### Settings
 The settings tell how the program should work.
-* `update_delay` is the delay between each check for changed IP addresses (in seconds)
+* `update_delay` is the delay between each check for changed IP addresses (in seconds) : WARNING: This option doesn't work on Windows. Use the tasks scheduler instead.
 * `fallback_ip_method` is the default IP address script to use if the main one fails. (Can be enabled/disabled for each host individually)
 
 The `on_error` block tells the program what to do in case of an error updating a DynHost:
@@ -96,6 +140,15 @@ You can configure as many hosts as you need, where:
 }
 ```
 
+### How to run on Windows
+
+On Windows, you can type this command. Change the path to be align with your configuration
+```json
+python C:\<PATH>\dynhost.py -c C:\<PATH>\dynhost.json --scripts C:\<PATH>\scripts
+```
+
+If it doesn't work, please check that python is in your local or system variables environnment. Check that your path is correct.
+
 ### Scripts
 Scripts just need to be executable, using `chmod +x your_script_file.sh` on Linux.
 
@@ -104,7 +157,7 @@ You can place your scripts inside the existing `scripts` folder before installin
 **Note:** The program expects raw IP addresses such as `127.0.0.1`, you need to take care of the parsing inside the script. Any whitespaces will be ignored.
 
 Example for Linux
-```bash
+```sh
 #!/bin/sh
 
 curl -s something.com/what_is_my_ip
@@ -128,3 +181,4 @@ If you modify the installed service file you will need to execute `systemctl dae
 
 ### Note about IPv6
 At the time I am writing this, OVH's DynHost only supports IPv4, the program accepts IPv6 addresses returned from scripts but DynHost does not create/update an AAAA field.
+
